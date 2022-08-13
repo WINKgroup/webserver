@@ -4,7 +4,7 @@ export default class Backend {
     rejectUnauthorized = true
 
     constructor(rejectUnauthorized:boolean) {
-
+        this.rejectUnauthorized = rejectUnauthorized
     }
 
     async get() {

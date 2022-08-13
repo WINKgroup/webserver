@@ -43,6 +43,7 @@ var axios_1 = __importDefault(require("axios"));
 var Backend = /** @class */ (function () {
     function Backend(rejectUnauthorized) {
         this.rejectUnauthorized = true;
+        this.rejectUnauthorized = rejectUnauthorized;
     }
     Backend.prototype.get = function () {
         return __awaiter(this, void 0, void 0, function () {
