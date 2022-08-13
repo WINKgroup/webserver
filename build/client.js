@@ -40,32 +40,159 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var axios_1 = __importDefault(require("axios"));
+var sha256_1 = __importDefault(require("crypto-js/sha256"));
+var enc_hex_1 = __importDefault(require("crypto-js/enc-hex"));
 var Backend = /** @class */ (function () {
-    function Backend(rejectUnauthorized) {
-        this.rejectUnauthorized = true;
-        this.rejectUnauthorized = rejectUnauthorized;
+    function Backend(baseUrl) {
+        this.token = '';
+        this.isTokenLoaded = false;
+        this.baseUrl = baseUrl;
     }
-    Backend.prototype.get = function () {
+    Backend.prototype.getToken = function () {
+        if (!this.isTokenLoaded)
+            this.token = window.localStorage.getItem("token") || '';
+        this.isTokenLoaded = true;
+        return this.token;
+    };
+    Backend.prototype.login = function (password, username) {
+        if (username === void 0) { username = 'admin'; }
         return __awaiter(this, void 0, void 0, function () {
-            var https, agent, response;
+            var pwdHash, response, e_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        if (!this.rejectUnauthorized) return [3 /*break*/, 2];
-                        https = require('https');
-                        agent = new https.Agent({
-                            rejectUnauthorized: false
-                        });
-                        return [4 /*yield*/, axios_1.default.get('https://google.com', {
-                                httpsAgent: agent
+                        _a.trys.push([0, 2, , 3]);
+                        pwdHash = (0, sha256_1.default)(password).toString(enc_hex_1.default);
+                        return [4 /*yield*/, axios_1.default.post("".concat(this.baseUrl, "/login"), { pwdHash: pwdHash })];
+                    case 1:
+                        response = _a.sent();
+                        this.token = response.data;
+                        window.localStorage.setItem('token', this.token);
+                        return [2 /*return*/, true];
+                    case 2:
+                        e_1 = _a.sent();
+                        return [2 /*return*/, false];
+                    case 3: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    Backend.prototype.logout = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                this.token = '';
+                window.localStorage.removeItem('token');
+                return [2 /*return*/];
+            });
+        });
+    };
+    Backend.prototype.get = function (path, addBaseUrl) {
+        if (addBaseUrl === void 0) { addBaseUrl = true; }
+        return __awaiter(this, void 0, void 0, function () {
+            var url, response;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        url = addBaseUrl ? "".concat(this.baseUrl).concat(path) : path;
+                        return [4 /*yield*/, axios_1.default.get(url, {
+                                headers: {
+                                    'Authorization': "Bearer ".concat(this.getToken())
+                                }
                             })];
                     case 1:
                         response = _a.sent();
                         return [2 /*return*/, response];
-                    case 2:
-                        axios_1.default.get('https://google.com');
-                        _a.label = 3;
-                    case 3: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    Backend.prototype.post = function (path, data, addBaseUrl) {
+        if (addBaseUrl === void 0) { addBaseUrl = true; }
+        return __awaiter(this, void 0, void 0, function () {
+            var url, response;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        url = addBaseUrl ? "".concat(this.baseUrl).concat(path) : path;
+                        return [4 /*yield*/, axios_1.default.post(url, data, {
+                                headers: {
+                                    'Authorization': "Bearer ".concat(this.getToken())
+                                }
+                            })];
+                    case 1:
+                        response = _a.sent();
+                        return [2 /*return*/, response];
+                }
+            });
+        });
+    };
+    Backend.prototype.put = function (path, data) {
+        return __awaiter(this, void 0, void 0, function () {
+            var response;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, axios_1.default.put("".concat(this.baseUrl).concat(path), data, {
+                            headers: {
+                                'Authorization': "Bearer ".concat(this.getToken())
+                            }
+                        })];
+                    case 1:
+                        response = _a.sent();
+                        return [2 /*return*/, response];
+                }
+            });
+        });
+    };
+    Backend.prototype.patch = function (path, data) {
+        return __awaiter(this, void 0, void 0, function () {
+            var response;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, axios_1.default.patch("".concat(this.baseUrl).concat(path), data, {
+                            headers: {
+                                'Authorization': "Bearer ".concat(this.getToken())
+                            }
+                        })];
+                    case 1:
+                        response = _a.sent();
+                        return [2 /*return*/, response];
+                }
+            });
+        });
+    };
+    Backend.prototype.remove = function (path) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, axios_1.default.delete("".concat(this.baseUrl).concat(path), {
+                            headers: {
+                                'Authorization': "Bearer ".concat(this.getToken())
+                            }
+                        })];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    Backend.prototype.materialTable = function (path, query) {
+        return __awaiter(this, void 0, void 0, function () {
+            var response;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, axios_1.default.post(path, query, {
+                            headers: {
+                                'Authorization': "Bearer ".concat(this.getToken())
+                            }
+                        })];
+                    case 1:
+                        response = _a.sent();
+                        return [2 /*return*/, {
+                                data: response.data.data,
+                                page: response.data.page,
+                                totalCount: response.data.totalCount
+                            }];
                 }
             });
         });

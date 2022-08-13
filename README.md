@@ -33,6 +33,35 @@ This is the main class. `config` object has these attributes:
 - useEndpoints: a list of [Endpoints](#endpoint)
 - rejectUnauthorized: useful when to want to test https without proper certificate (default is true)
 
+Express object is accessible through the attribute *app*:
+```js
+    const webserver = new Webserver()
+    // webserver.app is the Express object
+```
+
+Endpoints:
+`POST /login`
+this is a really simple endpoint. It verify provided pwdHash against `PWD_HASH` environmental variable. If it valid it assumes `username` is the real user. You can easily override this endpoint extending the class:
+```js
+    class MyWebserver extends Webserver {
+        protected setupLoginEndpoint() {
+            this.app.post('/login', (req, res) => {
+                const pwdHash = req.body.pwdHash
+                if (pwdHash === Env.get('PWD_HASH') )
+                    res.send( jwt.sign({ user: req.body.username }, Env.get('JWT_SECRET')) )
+                    else res.status(403).send('wrong password')
+            })
+        }
+    }
+```
+Request body:
+```
+{
+    username: username
+    pwdHash: hashed password
+}
+```
+
 ### Endpoint
 this is an object used to extend [Webserver](#webserver) with new collections.
 It takes two attributes:

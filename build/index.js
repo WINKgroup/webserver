@@ -38,13 +38,7 @@ var Webserver = /** @class */ (function () {
         this.app.get('/server', function (req, res) {
             res.send("".concat(_this.name, " server up and running!"));
         });
-        this.app.post('/login', function (req, res) {
-            var pwdHash = req.body.pwdHash;
-            if (pwdHash === env_1.default.get('PWD_HASH'))
-                res.send(jsonwebtoken_1.default.sign({ user: 'admin' }, env_1.default.get('JWT_SECRET')));
-            else
-                res.status(403).send('wrong password');
-        });
+        this.setupLoginEndpoint();
         config.useEndpoints.map(function (endpoint) {
             _this.app.use(endpoint.path, endpoint.router);
         });
@@ -57,6 +51,15 @@ var Webserver = /** @class */ (function () {
             });
         }
     }
+    Webserver.prototype.setupLoginEndpoint = function () {
+        this.app.post('/login', function (req, res) {
+            var pwdHash = req.body.pwdHash;
+            if (pwdHash === env_1.default.get('PWD_HASH'))
+                res.send(jsonwebtoken_1.default.sign({ user: req.body.username }, env_1.default.get('JWT_SECRET')));
+            else
+                res.status(403).send('wrong password');
+        });
+    };
     Webserver.prototype.getBaseUrl = function () {
         return "http://".concat(this.ip, ":").concat(this.port);
     };

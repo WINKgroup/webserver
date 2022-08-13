@@ -22,6 +22,7 @@ export default class Webserver {
     port: number;
     ioApp?: IOServer;
     constructor(inputConfig?: WebserverConfig);
+    protected setupLoginEndpoint(): void;
     getBaseUrl(): string;
     mountUi(): void;
     listen(): Promise<void>;

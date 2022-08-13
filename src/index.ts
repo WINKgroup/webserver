@@ -57,12 +57,7 @@ export default class Webserver {
             res.send(`${this.name} server up and running!`)
         })
 
-        this.app.post('/login', (req, res) => {
-            const pwdHash = req.body.pwdHash
-            if (pwdHash === Env.get('PWD_HASH') )
-                res.send( jwt.sign({ user: 'admin' }, Env.get('JWT_SECRET')) )
-                else res.status(403).send('wrong password')
-        })
+        this.setupLoginEndpoint()
 
         config.useEndpoints.map(
             endpoint => {
@@ -78,6 +73,15 @@ export default class Webserver {
                 }
             })
         }
+    }
+
+    protected setupLoginEndpoint() {
+        this.app.post('/login', (req, res) => {
+            const pwdHash = req.body.pwdHash
+            if (pwdHash === Env.get('PWD_HASH') )
+                res.send( jwt.sign({ user: req.body.username }, Env.get('JWT_SECRET')) )
+                else res.status(403).send('wrong password')
+        })
     }
 
     getBaseUrl() {
