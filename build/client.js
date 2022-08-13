@@ -54,15 +54,14 @@ var Backend = /** @class */ (function () {
         this.isTokenLoaded = true;
         return this.token;
     };
-    Backend.prototype.login = function (password, username) {
+    Backend.prototype.loginHashedPassword = function (pwdHash, username) {
         if (username === void 0) { username = 'admin'; }
         return __awaiter(this, void 0, void 0, function () {
-            var pwdHash, response, e_1;
+            var response, e_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 2, , 3]);
-                        pwdHash = (0, sha256_1.default)(password).toString(enc_hex_1.default);
                         return [4 /*yield*/, axios_1.default.post("".concat(this.baseUrl, "/login"), { pwdHash: pwdHash })];
                     case 1:
                         response = _a.sent();
@@ -76,6 +75,11 @@ var Backend = /** @class */ (function () {
                 }
             });
         });
+    };
+    Backend.prototype.login = function (password, username) {
+        if (username === void 0) { username = 'admin'; }
+        var pwdHash = (0, sha256_1.default)(password).toString(enc_hex_1.default);
+        return this.loginHashedPassword(pwdHash, username);
     };
     Backend.prototype.logout = function () {
         return __awaiter(this, void 0, void 0, function () {

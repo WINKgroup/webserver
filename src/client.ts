@@ -17,9 +17,8 @@ export default class Backend {
         return this.token
     }
 
-    async login(password:string, username = 'admin') {
+    async loginHashedPassword(pwdHash:string, username = 'admin') {
         try {
-            const pwdHash = sha256(password).toString(HexEncoder)
             const response = await axios.post(`${ this.baseUrl }/login`, { pwdHash: pwdHash })
             this.token = response.data
             window.localStorage.setItem('token', this.token)
@@ -27,6 +26,11 @@ export default class Backend {
         } catch (e) {
             return false
         }
+    }
+    
+    login(password:string, username = 'admin') {
+        const pwdHash = sha256(password).toString(HexEncoder)
+        return this.loginHashedPassword(pwdHash, username)
     }
 
     async logout() {

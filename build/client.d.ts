@@ -4,6 +4,7 @@ export default class Backend {
     protected isTokenLoaded: boolean;
     constructor(baseUrl: string);
     getToken(): string;
+    loginHashedPassword(pwdHash: string, username?: string): Promise<boolean>;
     login(password: string, username?: string): Promise<boolean>;
     logout(): Promise<void>;
     get(path: string, addBaseUrl?: boolean): Promise<import("axios").AxiosResponse<any, any>>;
