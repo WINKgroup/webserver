@@ -185,7 +185,7 @@ var Backend = /** @class */ (function () {
             var response;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, axios_1.default.post(path, query, {
+                    case 0: return [4 /*yield*/, axios_1.default.post("".concat(this.baseUrl).concat(path), query, {
                             headers: {
                                 'Authorization': "Bearer ".concat(this.getToken())
                             }

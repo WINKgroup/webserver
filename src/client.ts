@@ -85,7 +85,7 @@ export default class Backend {
     }
 
     async materialTable<Model>(path:string, query:object) {
-        const response = await axios.post(path, query, {
+        const response = await axios.post(`${ this.baseUrl }${ path }`, query, {
             headers: {
                 'Authorization': `Bearer ${this.getToken()}`
             }
