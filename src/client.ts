@@ -1,8 +1,11 @@
 import axios from 'axios'
 import sha256 from 'crypto-js/sha256'
 import HexEncoder from 'crypto-js/enc-hex'
+import _ from 'lodash'
+import * as Yup from 'yup'
+import ErrorManager, { ErrorManagerResult } from '@winkgroup/error-manager/build/client'
 
-export default class Backend {
+export class Backend {
     baseUrl:string
     protected token = ''
     protected isTokenLoaded = false
@@ -96,5 +99,90 @@ export default class Backend {
             page: response.data.page,
             totalCount: response.data.totalCount
         }
+    }
+}
+
+export interface EntityOptions<IEntityUI extends {id: string}> {
+    emptyEntity?: IEntityUI
+    backend: Backend
+    errorManager: ErrorManager
+}
+
+interface EntitySaveSuccessResult {
+    status: 'success'
+    data: any
+}
+
+interface EntitySaveFailureResult extends ErrorManagerResult {
+    error: unknown
+}
+
+export type EntitySaveResult = EntitySaveSuccessResult | EntitySaveFailureResult
+
+export class Entity<IEntityUI extends {id: string}> {
+    restEndpoint: string
+    options: EntityOptions<IEntityUI>
+    protected lastResult = null as EntitySaveResult | null
+
+    constructor(restEndpoint:string, inputOptions?:Partial<EntityOptions<IEntityUI>>) {
+        this.options = _.defaults(inputOptions, {
+            backend: new Backend(restEndpoint),
+            errorManager: new ErrorManager()
+        })
+        this.restEndpoint = this.options.backend.baseUrl === restEndpoint ? '' : restEndpoint
+    }
+
+    getValidationSchema() {
+        return Yup.object()
+    }
+
+    getResult() {
+        return this.lastResult
+    }
+
+    async save(entity:IEntityUI, previous?:IEntityUI): Promise<EntitySaveResult> {
+        let id = entity['id']
+
+        try {
+            const validationSchema = this.getValidationSchema()
+            await validationSchema.validate(entity)
+
+            let data:any
+            if (id) {
+                const dataToSend = Entity.getDataToSend<IEntityUI>(entity, previous, this.options.emptyEntity)
+                const response = await this.options.backend.put(this.restEndpoint, dataToSend)
+                data = response.data
+            } else {
+                const dataToSend = Entity.getDataToSend<IEntityUI>(entity, undefined, this.options.emptyEntity)
+                const response = await this.options.backend.post(this.restEndpoint, dataToSend)
+                data = response.data
+            }
+
+            this.lastResult = {
+                status: 'success',
+                data: data
+            }
+        } catch (e) {
+            this.options.errorManager.e = e
+            this.lastResult = {
+                ...this.options.errorManager.get(),
+                error: e
+            }
+        }
+
+        return this.lastResult
+    }
+
+    static getDataToSend<IEntityUI extends {id: string}>(entity:IEntityUI, previous?:IEntityUI, base?:IEntityUI) {
+        const dataToSend:Partial<IEntityUI> = {}
+        const cycler = base ? base : entity
+
+        for( const key in cycler ) {
+            if (key === 'id') continue
+            if(previous && _.isEqual(entity[key], previous[key])) continue
+            dataToSend[key] = entity[key]
+        }
+
+        return dataToSend
     }
 }
