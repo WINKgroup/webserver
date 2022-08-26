@@ -1,6 +1,6 @@
 {
   "name": "@winkgroup/webserver",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "description": "a REST web server",
   "main": "./build/index.js",
   "types": "./build/index.d.ts",

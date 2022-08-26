@@ -1,6 +1,6 @@
 import axios from 'axios'
 import https from 'https'
-import { Backend, Entity, EntitySaveResult } from './client'
+import { Backend, Entity, EntitySaveOptions, EntityRequestResult } from './client'
 
 const agent = new https.Agent({  
     rejectUnauthorized: false
@@ -8,4 +8,4 @@ const agent = new https.Agent({
 
 axios.defaults.httpsAgent = agent
 
-export { Backend, EntitySaveResult, Entity }
+export { Backend, EntityRequestResult, Entity, EntitySaveOptions }

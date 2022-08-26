@@ -12,7 +12,7 @@ export declare class Backend {
     post(path: string, data: any, addBaseUrl?: boolean): Promise<import("axios").AxiosResponse<any, any>>;
     put(path: string, data: any): Promise<import("axios").AxiosResponse<any, any>>;
     patch(path: string, data: any): Promise<import("axios").AxiosResponse<any, any>>;
-    remove(path: string): Promise<void>;
+    delete(path: string): Promise<void>;
     materialTable<Model>(path: string, query: object): Promise<{
         data: Model[];
         page: any;
@@ -25,30 +25,36 @@ export interface EntityOptions<IEntityUI extends {
     emptyEntity?: IEntityUI;
     backend: Backend;
     errorManager: ErrorManager;
-    defaultSuccessFeedbackMessage: string;
     isSaving?: (saving: boolean) => void;
-    sendFeeback?: (result: EntitySaveResult) => void;
+    sendFeeback?: (result: EntityRequestResult) => void;
     sendFeedbackMessage?: (message: string) => void;
 }
-interface EntitySaveSuccessResult {
+interface EntityRequestSuccessResult {
     status: 'success';
     data: any;
 }
-interface EntitySaveFailureResult extends ErrorManagerResult {
+interface EntityRequestFailureResult extends ErrorManagerResult {
     error: unknown;
 }
-export declare type EntitySaveResult = EntitySaveSuccessResult | EntitySaveFailureResult;
+export declare type EntityRequestResult = EntityRequestSuccessResult | EntityRequestFailureResult;
+export interface EntitySaveOptions<IEntityUI extends {
+    id: string;
+}> {
+    previousEntity?: IEntityUI;
+    successMessage: string;
+}
 export declare class Entity<IEntityUI extends {
     id: string;
 }> {
     restEndpoint: string;
     options: EntityOptions<IEntityUI>;
-    protected lastResult: EntitySaveResult | null;
+    protected lastResult: EntityRequestResult | null;
     constructor(restEndpoint: string, inputOptions?: Partial<EntityOptions<IEntityUI>>);
     getValidationSchema(): import("yup/lib/object").OptionalObjectSchema<import("yup/lib/object").ObjectShape, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").ObjectShape>>;
-    getResult(): EntitySaveResult | null;
-    protected sendFeedback(): void;
-    save(entity: IEntityUI, previous?: IEntityUI): Promise<EntitySaveResult>;
+    getResult(): EntityRequestResult | null;
+    protected sendFeedback(successMessage: string): void;
+    delete(id: string, successMessage?: string): Promise<EntityRequestResult>;
+    save(entity: IEntityUI, inputOptions?: Partial<EntitySaveOptions<IEntityUI>>): Promise<EntityRequestResult>;
     static getDataToSend<IEntityUI extends {
         id: string;
     }>(entity: IEntityUI, previous?: IEntityUI, base?: IEntityUI): Partial<IEntityUI>;

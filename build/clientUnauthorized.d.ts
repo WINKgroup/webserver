@@ -1,2 +1,2 @@
-import { Backend, Entity, EntitySaveResult } from './client';
-export { Backend, EntitySaveResult, Entity };
+import { Backend, Entity, EntitySaveOptions, EntityRequestResult } from './client';
+export { Backend, EntityRequestResult, Entity, EntitySaveOptions };

@@ -202,7 +202,7 @@ var Backend = /** @class */ (function () {
             });
         });
     };
-    Backend.prototype.remove = function (path) {
+    Backend.prototype.delete = function (path) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
@@ -258,23 +258,59 @@ var Entity = /** @class */ (function () {
     Entity.prototype.getResult = function () {
         return this.lastResult;
     };
-    Entity.prototype.sendFeedback = function () {
+    Entity.prototype.sendFeedback = function (successMessage) {
         if (this.lastResult) {
             if (this.options.sendFeeback)
                 this.options.sendFeeback(this.lastResult);
             if (this.options.sendFeedbackMessage) {
-                var message = this.lastResult.status !== 'success' ? this.lastResult.message : this.options.defaultSuccessFeedbackMessage;
+                var message = this.lastResult.status !== 'success' ? this.lastResult.message : successMessage;
                 this.options.sendFeedbackMessage(message);
             }
         }
     };
-    Entity.prototype.save = function (entity, previous) {
+    Entity.prototype.delete = function (id, successMessage) {
         return __awaiter(this, void 0, void 0, function () {
-            var id, validationSchema, data, dataToSend, response, dataToSend, response, e_2;
+            var e_2;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (!successMessage)
+                            successMessage = 'Deleted';
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        if (this.options.isSaving)
+                            this.options.isSaving(true);
+                        return [4 /*yield*/, this.options.backend.delete(this.restEndpoint + '/' + id)];
+                    case 2:
+                        _a.sent();
+                        this.lastResult = {
+                            status: 'success',
+                            data: { id: id }
+                        };
+                        return [3 /*break*/, 4];
+                    case 3:
+                        e_2 = _a.sent();
+                        this.options.errorManager.e = e_2;
+                        this.lastResult = __assign(__assign({}, this.options.errorManager.get()), { error: e_2 });
+                        return [3 /*break*/, 4];
+                    case 4:
+                        if (this.options.isSaving)
+                            this.options.isSaving(false);
+                        this.sendFeedback(successMessage);
+                        return [2 /*return*/, this.lastResult];
+                }
+            });
+        });
+    };
+    Entity.prototype.save = function (entity, inputOptions) {
+        return __awaiter(this, void 0, void 0, function () {
+            var id, options, validationSchema, data, dataToSend, response, dataToSend, response, e_3;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         id = entity['id'];
+                        options = lodash_1.default.defaults(inputOptions, { successMessage: 'Saved' });
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 7, , 8]);
@@ -286,7 +322,7 @@ var Entity = /** @class */ (function () {
                             this.options.isSaving(true);
                         data = void 0;
                         if (!id) return [3 /*break*/, 4];
-                        dataToSend = Entity.getDataToSend(entity, previous, this.options.emptyEntity);
+                        dataToSend = Entity.getDataToSend(entity, options.previousEntity, this.options.emptyEntity);
                         return [4 /*yield*/, this.options.backend.patch(this.restEndpoint + '/' + id, dataToSend)];
                     case 3:
                         response = _a.sent();
@@ -306,14 +342,14 @@ var Entity = /** @class */ (function () {
                         };
                         return [3 /*break*/, 8];
                     case 7:
-                        e_2 = _a.sent();
-                        this.options.errorManager.e = e_2;
-                        this.lastResult = __assign(__assign({}, this.options.errorManager.get()), { error: e_2 });
+                        e_3 = _a.sent();
+                        this.options.errorManager.e = e_3;
+                        this.lastResult = __assign(__assign({}, this.options.errorManager.get()), { error: e_3 });
                         return [3 /*break*/, 8];
                     case 8:
                         if (this.options.isSaving)
                             this.options.isSaving(false);
-                        this.sendFeedback();
+                        this.sendFeedback(options.successMessage);
                         return [2 /*return*/, this.lastResult];
                 }
             });
