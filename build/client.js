@@ -287,7 +287,7 @@ var Entity = /** @class */ (function () {
                         data = void 0;
                         if (!id) return [3 /*break*/, 4];
                         dataToSend = Entity.getDataToSend(entity, previous, this.options.emptyEntity);
-                        return [4 /*yield*/, this.options.backend.put(this.restEndpoint, dataToSend)];
+                        return [4 /*yield*/, this.options.backend.patch(this.restEndpoint + '/' + id, dataToSend)];
                     case 3:
                         response = _a.sent();
                         data = response.data;

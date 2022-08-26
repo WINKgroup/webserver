@@ -166,7 +166,7 @@ export class Entity<IEntityUI extends {id: string}> {
             let data:any
             if (id) {
                 const dataToSend = Entity.getDataToSend<IEntityUI>(entity, previous, this.options.emptyEntity)
-                const response = await this.options.backend.put(this.restEndpoint, dataToSend)
+                const response = await this.options.backend.patch(this.restEndpoint + '/' + id, dataToSend)
                 data = response.data
             } else {
                 const dataToSend = Entity.getDataToSend<IEntityUI>(entity, undefined, this.options.emptyEntity)
