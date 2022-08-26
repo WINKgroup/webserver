@@ -106,6 +106,10 @@ export interface EntityOptions<IEntityUI extends {id: string}> {
     emptyEntity?: IEntityUI
     backend: Backend
     errorManager: ErrorManager
+    defaultSuccessFeedbackMessage: string
+    isSaving?: (saving:boolean) => void
+    sendFeeback?: (result:EntitySaveResult) => void
+    sendFeedbackMessage?: (message:string) => void
 }
 
 interface EntitySaveSuccessResult {
@@ -127,7 +131,8 @@ export class Entity<IEntityUI extends {id: string}> {
     constructor(restEndpoint:string, inputOptions?:Partial<EntityOptions<IEntityUI>>) {
         this.options = _.defaults(inputOptions, {
             backend: new Backend(restEndpoint),
-            errorManager: new ErrorManager()
+            errorManager: new ErrorManager(),
+            defaultSuccessFeedbackMessage: 'Saved'
         })
         this.restEndpoint = this.options.backend.baseUrl === restEndpoint ? '' : restEndpoint
     }
@@ -140,12 +145,23 @@ export class Entity<IEntityUI extends {id: string}> {
         return this.lastResult
     }
 
+    protected sendFeedback() {
+        if (this.lastResult) {
+            if (this.options.sendFeeback) this.options.sendFeeback(this.lastResult)
+            if (this.options.sendFeedbackMessage) {
+                const message = this.lastResult.status !== 'success' ? this.lastResult.message : this.options.defaultSuccessFeedbackMessage
+                this.options.sendFeedbackMessage(message)
+            }
+        }
+    }
+
     async save(entity:IEntityUI, previous?:IEntityUI): Promise<EntitySaveResult> {
         let id = entity['id']
 
         try {
             const validationSchema = this.getValidationSchema()
             await validationSchema.validate(entity)
+            if (this.options.isSaving) this.options.isSaving(true)
 
             let data:any
             if (id) {
@@ -170,6 +186,8 @@ export class Entity<IEntityUI extends {id: string}> {
             }
         }
 
+        if (this.options.isSaving) this.options.isSaving(false)
+        this.sendFeedback()
         return this.lastResult
     }
 

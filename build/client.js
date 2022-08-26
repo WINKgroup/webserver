@@ -247,7 +247,8 @@ var Entity = /** @class */ (function () {
         this.lastResult = null;
         this.options = lodash_1.default.defaults(inputOptions, {
             backend: new Backend(restEndpoint),
-            errorManager: new client_1.default()
+            errorManager: new client_1.default(),
+            defaultSuccessFeedbackMessage: 'Saved'
         });
         this.restEndpoint = this.options.backend.baseUrl === restEndpoint ? '' : restEndpoint;
     }
@@ -256,6 +257,16 @@ var Entity = /** @class */ (function () {
     };
     Entity.prototype.getResult = function () {
         return this.lastResult;
+    };
+    Entity.prototype.sendFeedback = function () {
+        if (this.lastResult) {
+            if (this.options.sendFeeback)
+                this.options.sendFeeback(this.lastResult);
+            if (this.options.sendFeedbackMessage) {
+                var message = this.lastResult.status !== 'success' ? this.lastResult.message : this.options.defaultSuccessFeedbackMessage;
+                this.options.sendFeedbackMessage(message);
+            }
+        }
     };
     Entity.prototype.save = function (entity, previous) {
         return __awaiter(this, void 0, void 0, function () {
@@ -271,6 +282,8 @@ var Entity = /** @class */ (function () {
                         return [4 /*yield*/, validationSchema.validate(entity)];
                     case 2:
                         _a.sent();
+                        if (this.options.isSaving)
+                            this.options.isSaving(true);
                         data = void 0;
                         if (!id) return [3 /*break*/, 4];
                         dataToSend = Entity.getDataToSend(entity, previous, this.options.emptyEntity);
@@ -297,7 +310,11 @@ var Entity = /** @class */ (function () {
                         this.options.errorManager.e = e_2;
                         this.lastResult = __assign(__assign({}, this.options.errorManager.get()), { error: e_2 });
                         return [3 /*break*/, 8];
-                    case 8: return [2 /*return*/, this.lastResult];
+                    case 8:
+                        if (this.options.isSaving)
+                            this.options.isSaving(false);
+                        this.sendFeedback();
+                        return [2 /*return*/, this.lastResult];
                 }
             });
         });

@@ -25,6 +25,10 @@ export interface EntityOptions<IEntityUI extends {
     emptyEntity?: IEntityUI;
     backend: Backend;
     errorManager: ErrorManager;
+    defaultSuccessFeedbackMessage: string;
+    isSaving?: (saving: boolean) => void;
+    sendFeeback?: (result: EntitySaveResult) => void;
+    sendFeedbackMessage?: (message: string) => void;
 }
 interface EntitySaveSuccessResult {
     status: 'success';
@@ -43,6 +47,7 @@ export declare class Entity<IEntityUI extends {
     constructor(restEndpoint: string, inputOptions?: Partial<EntityOptions<IEntityUI>>);
     getValidationSchema(): import("yup/lib/object").OptionalObjectSchema<import("yup/lib/object").ObjectShape, import("yup/lib/object").AnyObject, import("yup/lib/object").TypeOfShape<import("yup/lib/object").ObjectShape>>;
     getResult(): EntitySaveResult | null;
+    protected sendFeedback(): void;
     save(entity: IEntityUI, previous?: IEntityUI): Promise<EntitySaveResult>;
     static getDataToSend<IEntityUI extends {
         id: string;
