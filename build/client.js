@@ -1,4 +1,38 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -39,9 +73,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Entity = exports.Backend = void 0;
 var axios_1 = __importDefault(require("axios"));
 var sha256_1 = __importDefault(require("crypto-js/sha256"));
 var enc_hex_1 = __importDefault(require("crypto-js/enc-hex"));
+var lodash_1 = __importDefault(require("lodash"));
+var Yup = __importStar(require("yup"));
+var client_1 = __importDefault(require("@winkgroup/error-manager/build/client"));
 var Backend = /** @class */ (function () {
     function Backend(baseUrl) {
         this.token = '';
@@ -203,4 +241,79 @@ var Backend = /** @class */ (function () {
     };
     return Backend;
 }());
-exports.default = Backend;
+exports.Backend = Backend;
+var Entity = /** @class */ (function () {
+    function Entity(restEndpoint, inputOptions) {
+        this.lastResult = null;
+        this.options = lodash_1.default.defaults(inputOptions, {
+            backend: new Backend(restEndpoint),
+            errorManager: new client_1.default()
+        });
+        this.restEndpoint = this.options.backend.baseUrl === restEndpoint ? '' : restEndpoint;
+    }
+    Entity.prototype.getValidationSchema = function () {
+        return Yup.object();
+    };
+    Entity.prototype.getResult = function () {
+        return this.lastResult;
+    };
+    Entity.prototype.save = function (entity, previous) {
+        return __awaiter(this, void 0, void 0, function () {
+            var id, validationSchema, data, dataToSend, response, dataToSend, response, e_2;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        id = entity['id'];
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 7, , 8]);
+                        validationSchema = this.getValidationSchema();
+                        return [4 /*yield*/, validationSchema.validate(entity)];
+                    case 2:
+                        _a.sent();
+                        data = void 0;
+                        if (!id) return [3 /*break*/, 4];
+                        dataToSend = Entity.getDataToSend(entity, previous, this.options.emptyEntity);
+                        return [4 /*yield*/, this.options.backend.put(this.restEndpoint, dataToSend)];
+                    case 3:
+                        response = _a.sent();
+                        data = response.data;
+                        return [3 /*break*/, 6];
+                    case 4:
+                        dataToSend = Entity.getDataToSend(entity, undefined, this.options.emptyEntity);
+                        return [4 /*yield*/, this.options.backend.post(this.restEndpoint, dataToSend)];
+                    case 5:
+                        response = _a.sent();
+                        data = response.data;
+                        _a.label = 6;
+                    case 6:
+                        this.lastResult = {
+                            status: 'success',
+                            data: data
+                        };
+                        return [3 /*break*/, 8];
+                    case 7:
+                        e_2 = _a.sent();
+                        this.options.errorManager.e = e_2;
+                        this.lastResult = __assign(__assign({}, this.options.errorManager.get()), { error: e_2 });
+                        return [3 /*break*/, 8];
+                    case 8: return [2 /*return*/, this.lastResult];
+                }
+            });
+        });
+    };
+    Entity.getDataToSend = function (entity, previous, base) {
+        var dataToSend = {};
+        var cycler = base ? base : entity;
+        for (var key in cycler) {
+            if (key === 'id')
+                continue;
+            if (previous && lodash_1.default.isEqual(entity[key], previous[key]))
+                continue;
+            dataToSend[key] = entity[key];
+        }
+        return dataToSend;
+    };
+    return Entity;
+}());
+exports.Entity = Entity;
