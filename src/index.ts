@@ -3,7 +3,6 @@ import _ from "lodash"
 import express from 'express'
 import jwt from 'jsonwebtoken'
 import path from 'path'
-import Env from '@winkgroup/env'
 import { Server as IOServer } from "socket.io"
 
 interface Endpoint {
@@ -18,6 +17,8 @@ export interface WebserverConfig {
     hasSocket?: boolean
     useEndpoints?: Endpoint[]
     rejectUnauthorized?: boolean
+    hashedAdminPassword?: string
+    jwtSecret?: string
 }
 
 export default class Webserver {
@@ -27,19 +28,25 @@ export default class Webserver {
     ip:string
     port:number
     ioApp?:IOServer
+    hashedAdminPassword:string
+    jwtSecret:string
 
     constructor(inputConfig?:WebserverConfig) {
         const config = _.defaults(inputConfig, {
             name: "Anonymous Webserver",
-            port: Env.get('PORT', 8080),
-            ip: Env.get('IP', '127.0.0.1'),
+            port: 8080,
+            ip: '127.0.0.1',
             hasSocket: false,
             useEndpoints: [] as Endpoint[],
-            rejectUnauthorized: true
+            rejectUnauthorized: true,
+            hashedAdminPassword: '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918',  // sha256('admin')
+            jwtSecret: 'jwtSecret'
         })
         this.name = config.name
         this.ip = config.ip
         this.port = config.port
+        this.hashedAdminPassword = config.hashedAdminPassword
+        this.jwtSecret = config.jwtSecret
 
         if (!config.rejectUnauthorized) process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
         this.app = express()
@@ -78,8 +85,8 @@ export default class Webserver {
     protected setupLoginEndpoint() {
         this.app.post('/login', (req, res) => {
             const pwdHash = req.body.pwdHash
-            if (pwdHash === Env.get('PWD_HASH') )
-                res.send( jwt.sign({ user: req.body.username }, Env.get('JWT_SECRET')) )
+            if (pwdHash === this.hashedAdminPassword )
+                res.send( jwt.sign({ user: req.body.username }, this.jwtSecret ) )
                 else res.status(403).send('wrong password')
         })
     }

@@ -14,15 +14,6 @@ const webserver = new Webserver({ name: 'MyServer' })
 webserver.listen()
 ```
 
-Some config parameters are taken from env file using [Env library](https://www.npmjs.com/package/@winkgroup/env).
-In particular you could set a .env with this info:
-```
-PORT=[xxx]
-IP=[xxx]
-PWD_HASH=[xxx]
-JWT_SECRET=[xxx]
-```
-
 ## API
 ### Webserver(config)
 This is the main class. `config` object has these attributes:
@@ -32,6 +23,8 @@ This is the main class. `config` object has these attributes:
 - hasSocket: enables socket.io endpoint
 - useEndpoints: a list of [Endpoints](#endpoint)
 - rejectUnauthorized: useful when to want to test https without proper certificate (default is true)
+- hashedAdminPassword: admin password already hashed (default is "admin" with hash in sha256)
+- jwtSecret: secret word to salt jwt (default: jwtSecret)
 
 Express object is accessible through the attribute *app*:
 ```js
@@ -41,25 +34,18 @@ Express object is accessible through the attribute *app*:
 
 Endpoints:
 `POST /login`
-this is a really simple endpoint. It verify provided pwdHash against `PWD_HASH` environmental variable. If it valid it assumes `username` is the real user. You can easily override this endpoint extending the class:
+this is a really simple endpoint. It verifies provided pwdHash against `PWD_HASH` environmental variable. If it valid it assumes `username` is the real user. You can easily override this endpoint extending the class:
 ```js
     class MyWebserver extends Webserver {
         protected setupLoginEndpoint() {
             this.app.post('/login', (req, res) => {
-                const pwdHash = req.body.pwdHash
-                if (pwdHash === Env.get('PWD_HASH') )
-                    res.send( jwt.sign({ user: req.body.username }, Env.get('JWT_SECRET')) )
+                // ... any login
+                if ( booleanLoginResult )
+                    res.send( jwt.sign({ userInfo: userInfo }, this.jwtSecret ) )
                     else res.status(403).send('wrong password')
             })
         }
     }
-```
-Request body:
-```
-{
-    username: username
-    pwdHash: hashed password
-}
 ```
 
 ### Endpoint

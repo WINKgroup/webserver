@@ -36,7 +36,7 @@ interface EntityRequestSuccessResult {
 interface EntityRequestFailureResult extends ErrorManagerResult {
     error: unknown;
 }
-export declare type EntityRequestResult = EntityRequestSuccessResult | EntityRequestFailureResult;
+export type EntityRequestResult = EntityRequestSuccessResult | EntityRequestFailureResult;
 export interface EntitySaveOptions<IEntityUI extends {
     id: string;
 }> {

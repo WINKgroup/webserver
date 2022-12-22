@@ -8,22 +8,25 @@ var lodash_1 = __importDefault(require("lodash"));
 var express_1 = __importDefault(require("express"));
 var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 var path_1 = __importDefault(require("path"));
-var env_1 = __importDefault(require("@winkgroup/env"));
 var socket_io_1 = require("socket.io");
 var Webserver = /** @class */ (function () {
     function Webserver(inputConfig) {
         var _this = this;
         var config = lodash_1.default.defaults(inputConfig, {
             name: "Anonymous Webserver",
-            port: env_1.default.get('PORT', 8080),
-            ip: env_1.default.get('IP', '127.0.0.1'),
+            port: 8080,
+            ip: '127.0.0.1',
             hasSocket: false,
             useEndpoints: [],
-            rejectUnauthorized: true
+            rejectUnauthorized: true,
+            hashedAdminPassword: '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918',
+            jwtSecret: 'jwtSecret'
         });
         this.name = config.name;
         this.ip = config.ip;
         this.port = config.port;
+        this.hashedAdminPassword = config.hashedAdminPassword;
+        this.jwtSecret = config.jwtSecret;
         if (!config.rejectUnauthorized)
             process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
         this.app = (0, express_1.default)();
@@ -52,10 +55,11 @@ var Webserver = /** @class */ (function () {
         }
     }
     Webserver.prototype.setupLoginEndpoint = function () {
+        var _this = this;
         this.app.post('/login', function (req, res) {
             var pwdHash = req.body.pwdHash;
-            if (pwdHash === env_1.default.get('PWD_HASH'))
-                res.send(jsonwebtoken_1.default.sign({ user: req.body.username }, env_1.default.get('JWT_SECRET')));
+            if (pwdHash === _this.hashedAdminPassword)
+                res.send(jsonwebtoken_1.default.sign({ user: req.body.username }, _this.jwtSecret));
             else
                 res.status(403).send('wrong password');
         });

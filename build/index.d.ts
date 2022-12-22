@@ -13,6 +13,8 @@ export interface WebserverConfig {
     hasSocket?: boolean;
     useEndpoints?: Endpoint[];
     rejectUnauthorized?: boolean;
+    hashedAdminPassword?: string;
+    jwtSecret?: string;
 }
 export default class Webserver {
     name: string;
@@ -21,6 +23,8 @@ export default class Webserver {
     ip: string;
     port: number;
     ioApp?: IOServer;
+    hashedAdminPassword: string;
+    jwtSecret: string;
     constructor(inputConfig?: WebserverConfig);
     protected setupLoginEndpoint(): void;
     getBaseUrl(): string;
