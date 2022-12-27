@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken'
 import path from 'path'
 import { Server as IOServer } from "socket.io"
 
-interface Endpoint {
+export interface Endpoint {
     path: string
     router: express.Router
 }

@@ -2,7 +2,7 @@
 import http from 'http';
 import express from 'express';
 import { Server as IOServer } from "socket.io";
-interface Endpoint {
+export interface Endpoint {
     path: string;
     router: express.Router;
 }
@@ -32,4 +32,3 @@ export default class Webserver {
     listen(): Promise<void>;
     close(): Promise<void>;
 }
-export {};
