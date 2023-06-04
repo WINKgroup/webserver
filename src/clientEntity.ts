@@ -1,6 +1,6 @@
 import ErrorManager, {
     ErrorManagerResult,
-} from '@winkgroup/error-manager/build/client';
+} from '@winkgroup/error-manager/dist/client';
 import _ from 'lodash';
 import * as Yup from 'yup';
 import Backend from './clientBackend';
